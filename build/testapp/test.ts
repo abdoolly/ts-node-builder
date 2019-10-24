@@ -1,1 +1,2 @@
-console.log('running me 123456clear');
+let x = {};
+console.log('running me', process.env.NODE_ENV);

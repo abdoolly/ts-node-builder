@@ -1,12 +1,12 @@
 {
     "builders": {
         "dev": {
-            "implementation": "./dist/dev",
+            "implementation": "./dev",
             "schema": "./dev/schema.json",
             "description": "Runs the dev for any typescript node app mode using ts-node and nodemon"
         },
         "build": {
-            "implementation": "./dist/build",
+            "implementation": "./build",
             "schema": "./build/schema.json",
             "description": "Builds any node typescript project and optionally you can run it after after the build"
         }

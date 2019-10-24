@@ -27,7 +27,7 @@ describe('Command Runner Builder', () => {
         jasmine.DEFAULT_TIMEOUT_INTERVAL = (1000 * 60) * 2; // 1 min
     });
 
-    it('The dev server starts successfully', async () => {
+    it('should build the project successfully', async () => {
         // Create a logger that keeps an array of all messages that were logged.
         const logger = new logging.Logger('');
         const logs: string[] = [];
@@ -36,12 +36,45 @@ describe('Command Runner Builder', () => {
         let options: Options = {
             mainInOutput: 'testapp/dist/test.js',
             tsconfig: 'testapp/tsconfig.json',
-            outputPath: 'testapp/dist',
-            runAndBuild: false
+            runAndBuild: false,
+            NODE_ENV: 'production'
         };
 
         // A "run" can contain multiple outputs, and contains progress information.
-        const run = await architect.scheduleBuilder('ts-node-builder:dev', options, { logger });  // We pass the logger for checking later.
+        const run = await architect.scheduleBuilder('ts-node-builder:build', options, { logger });  // We pass the logger for checking later.
+
+        // The "result" member is the next output of the runner.
+        // This is of type BuilderOutput.
+        let output = await run.result;
+
+        // Stop the builder from running. This really stops Architect from keeping
+        // the builder associated states in memory, since builders keep waiting
+        // to be scheduled.
+        await run.stop();
+
+        // Expect that it succeeded.
+        expect(output.success).toBe(true);
+
+        // Expect that this file was listed. It should be since we're running
+        // `ls $__dirname`.
+        expect(logs.toString()).toContain('Typescript compiled successfully');
+    });
+
+    it('should build and run successfully', async () => {
+        // Create a logger that keeps an array of all messages that were logged.
+        const logger = new logging.Logger('');
+        const logs: string[] = [];
+        logger.subscribe(ev => logs.push(ev.message));
+
+        let options: Options = {
+            mainInOutput: 'testapp/dist/test.js',
+            tsconfig: 'testapp/tsconfig.json',
+            runAndBuild: true,
+            NODE_ENV: 'production'
+        };
+
+        // A "run" can contain multiple outputs, and contains progress information.
+        const run = await architect.scheduleBuilder('ts-node-builder:build', options, { logger });  // We pass the logger for checking later.
 
         // The "result" member is the next output of the runner.
         // This is of type BuilderOutput.

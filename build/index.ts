@@ -1,6 +1,7 @@
 import { BuilderOutput, createBuilder, BuilderContext } from '@angular-devkit/architect';
 import * as childProcess from 'child_process';
 import { JsonObject } from '@angular-devkit/core';
+import { Observable } from 'rxjs';
 
 export interface Options extends JsonObject {
     /**
@@ -14,145 +15,91 @@ export interface Options extends JsonObject {
     tsconfig: string;
 
     /**
-     * @description this is the output path for the build operation
-     */
-    outputPath: string;
-
-    /**
      * @description this is an option that will run the node server 
      * after building if false it will only build 
      */
     runAndBuild: boolean;
+
+    /**
+     * @description if you want to set the node env
+     * @default production
+     */
+    NODE_ENV: string;
 }
 
 
-let buildFunc = createBuilder<Options>((options, context): Promise<BuilderOutput> => {
-    // return new Promise<BuilderOutput>(async (resolve) => {
-    // tsc using the supplied tsconfig
-    // make all the production compile options 
+let buildFunc = createBuilder<Options>((options, context): Promise<BuilderOutput> | Observable<BuilderOutput> => {
+    let runAndBuild = options.runAndBuild === undefined || options.runAndBuild === true ? true : false;
+    let buildPromise = buildOnlyMode(context, options);
+    if (!runAndBuild)
+        return buildPromise;
 
-    let result = childProcess.spawnSync('tsc');
-    console.log('stdout', Buffer.from(result.stdout).toString('utf8'));
+    let observable = new Observable<BuilderOutput>((observer) => {
+        buildPromise.then(({ success }) => {
 
-    return new Promise(() => { success: true });
+            // only run the node server if the build was successfull
+            if (success) {
+                let pid = runNodeServer(context, options);
+                if (pid !== undefined)
+                    return observer.next({ success: true });
 
-    return buildOnlyMode(context, options);
+                return observer.next({ success: false });
+            }
 
-    // resolve({ success: true });
-    // });
+            // end the observer and publish that it was not successful
+            if (!success) {
+                observer.next({ success: false });
+                observer.complete();
+            }
+        });
+
+    });
+
+    return observable;
 });
 
 export default buildFunc
 
 
-function buildOnlyMode(context: BuilderContext, options: Options): Promise<any> {
-    return new Promise((resolve, reject) => {
-        const child = spawnTSC(context, options);
+function runNodeServer(context: BuilderContext, options: Options) {
+    // setting the node env option by default it's production 
+    let NODE_ENV = options.NODE_ENV || 'production';
 
-        child.stdout.on('end', () => {
-            console.log("I AM ENDED");
-            resolve({ success: true });
+    // spawn a node process
+    let child = childProcess.fork(`${context.currentDirectory}/${options.mainInOutput}`, [], { env: { NODE_ENV } });
+
+    if (child.stdout) {
+        child.stdout.on('data', (data: Buffer) => {
+            console.log(Buffer.from(data).toString('utf8'))
         });
+    }
 
-        // logging the tsc output to the user
-        child.stdout.on('data', (data: any) => console.log(Buffer.from(data).toString('utf8')));
-
-        child.stdout.on('error', (err: Error) => {
-            console.log('Error: ', err);
-            reject();
+    if (child.stderr) {
+        child.stderr.on('data', (data: Buffer) => {
+            if (child.stdout)
+                child.stdout.emit('data', data)
         });
+    }
 
-        child.stderr.on('data', (data: any) => child.stdout.emit('data', data));
-    });
+    return child.pid;
+}
+
+async function buildOnlyMode(context: BuilderContext, options: Options): Promise<BuilderOutput> {
+    let tscResult = spawnTSC(context, options);
+
+    console.log(Buffer.from(tscResult.stdout).toString('utf8'));
+
+    if (tscResult.status === 0) {
+        context.logger.info('Typescript compiled successfully');
+        console.log('Typescript compiled successfully');
+    }
+
+    return { success: tscResult.status === 0 };
 }
 
 function spawnTSC(context: BuilderContext, options: Options) {
-    return childProcess.spawn('tsc',
-        [
-            '--pretty',
-            '--build',
-            `${context.currentDirectory}/${options.tsconfig}`,
-            '--outDir',
-            `${context.currentDirectory}/${options.outputPath}`
-        ],
-        { stdio: 'pipe', env: { NODE_ENV: 'production' } });
+    return childProcess.spawnSync('tsc', [
+        '--build', `${context.currentDirectory}/${options.tsconfig}`,
+        '--pretty'
+    ]);
 }
-
-
-// /**
-//  * @description run a typescript project in dev mode where it restarts on change of the directories
-//  * that are being watched
-//  * @param context 
-//  * @param options 
-//  */
-// function devMode(context: BuilderContext, options: Options) {
-//     const child = spawnNodemon(context, options);
-
-//     // piping any inputs to the process to the nodemon child process
-//     // so if the user entered `rs` it's directed to nodemon so it restarts it's process
-//     process.stdin.on('data', (data: any) => child.stdin.write(data));
-
-//     // logging the nodemon output to the user
-//     child.stdout.on('data', (data: any) => console.log(Buffer.from(data).toString('utf8')));
-
-//     child.stdout.on('error', (err: Error) => {
-//         console.log('Error: ', err);
-//     });
-
-//     child.stderr.on('data', (data: any) => child.stdout.emit('data', data));
-// }
-
-// function spawnNodemon(context: BuilderContext, options: Options) {
-//     let watchArgs: string[] = [];
-//     if (options.watch.length !== 0) {
-//         options.watch = options.watch.map((value: string) => `${context.currentDirectory}/${value}`);
-//         watchArgs = `--watch ${options.watch.join(' --watch ')}`.split(' ');
-//     }
-
-//     // get the transpile only value
-//     // false => false
-//     // undefined => true
-//     // true => true
-//     let transpileValue: string[] = [];
-//     let transpileOnly = options.transpileOnly === false ? false : true;
-//     if (transpileOnly)
-//         transpileValue = ['-T']
-
-
-//     options.debug = options.debug === false || options.debug === undefined ? false : true;
-//     options.debugPort = options.debugPort === undefined ? 9229 : options.debugPort;
-
-//     if (!options.debug) {
-//         // nodemon --watch "file/path/to/watch" --ext ts,json --exec "ts-node -T --project tsconfig.app.json -r tsconfig-paths/register ./main/path.ts"
-//         return childProcess.spawn('nodemon',
-//             [
-//                 ...watchArgs,
-//                 '--ext',
-//                 'ts,json',
-//                 '--exec',
-//                 'ts-node',
-//                 ...transpileValue,
-//                 '--project',
-//                 `${context.currentDirectory}/${options.tsconfig}`,
-//                 '-r',
-//                 'tsconfig-paths/register',
-//                 `${context.currentDirectory}/${options.main}`
-//             ], { stdio: 'pipe' });
-//     }
-
-//     // nodemon --watch "file/path/to/watch" --ext ts,json --exec "node --inspect=PORT -r ts-node/register -r tsconfig-paths/register ./main/path.ts"
-//     return childProcess.spawn('nodemon',
-//         [
-//             ...watchArgs,
-//             '--ext',
-//             'ts,json',
-//             '--exec',
-//             'node',
-//             `--inspect=${options.debugPort}`,
-//             '-r',
-//             'ts-node/register',
-//             '-r',
-//             'tsconfig-paths/register',
-//             `${context.currentDirectory}/${options.main}`
-//         ], { stdio: 'pipe' });
-// }

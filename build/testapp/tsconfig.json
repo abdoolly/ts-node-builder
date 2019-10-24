@@ -16,7 +16,6 @@
             "es6"
         ],
         "types": [
-            "reflect-metadata",
             "node"
         ]
     }
