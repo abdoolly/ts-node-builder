@@ -26,7 +26,7 @@ export interface Options extends JsonObject {
 }
 
 
-let buildFunc = createBuilder<Options>((): Promise<BuilderOutput> => {
+let buildFunc = createBuilder<Options>((options, context): Promise<BuilderOutput> => {
     // return new Promise<BuilderOutput>(async (resolve) => {
     // tsc using the supplied tsconfig
     // make all the production compile options 
@@ -36,7 +36,7 @@ let buildFunc = createBuilder<Options>((): Promise<BuilderOutput> => {
 
     return new Promise(() => { success: true });
 
-    // return buildOnlyMode(context, options);
+    return buildOnlyMode(context, options);
 
     // resolve({ success: true });
     // });

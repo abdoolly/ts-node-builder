@@ -15,6 +15,7 @@
         "skipLibCheck": true,
         "sourceMap": true,
         "strictNullChecks": true,
+        "outDir": "dist",
         "types": [
             "node",
             "jasmine"

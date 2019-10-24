@@ -43,7 +43,7 @@ describe('Command Runner Builder', () => {
         };
 
         // A "run" can contain multiple outputs, and contains progress information.
-        const run = await architect.scheduleBuilder('ts-node-builder:build', options, { logger });  // We pass the logger for checking later.
+        const run = await architect.scheduleBuilder('ts-node-builder:dev', options, { logger });  // We pass the logger for checking later.
 
         // The "result" member is the next output of the runner.
         // This is of type BuilderOutput.
