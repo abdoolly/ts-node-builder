@@ -6,7 +6,8 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
-    "test": "ts-node node_modules/jasmine/bin/jasmine build/index_spec.ts"
+    "test-build": "ts-node node_modules/jasmine/bin/jasmine build/index_spec.ts",
+    "test-dev": "ts-node node_modules/jasmine/bin/jasmine dev/index_spec.ts"
   },
   "dependencies": {
     "@angular-devkit/architect": "^0.803.13",
