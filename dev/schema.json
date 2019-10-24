@@ -1,0 +1,32 @@
+{
+    "$schema": "http://json-schema.org/schema",
+    "type": "object",
+    "required": [
+        "main",
+        "watch",
+        "tsconfig"
+    ],
+    "properties": {
+        "main": {
+            "type": "string"
+        },
+        "watch": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "transpileOnly": {
+            "type": "boolean"
+        },
+        "tsconfig": {
+            "type": "string"
+        },
+        "debug": {
+            "type": "boolean"
+        },
+        "debugPort": {
+            "type": "number"
+        }
+    }
+}

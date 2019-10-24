@@ -1,0 +1,23 @@
+{
+    "$schema": "http://json-schema.org/schema",
+    "type": "object",
+    "required": [
+        "mainInOutput",
+        "tsconfig",
+        "outputPath"
+    ],
+    "properties": {
+        "mainInOutput": {
+            "type": "string"
+        },
+        "tsconfig": {
+            "type": "string"
+        },
+        "outputPath": {
+            "type": "string"
+        },
+        "runAndBuild": {
+            "type": "boolean"
+        }
+    }
+}

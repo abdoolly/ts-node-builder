@@ -1,0 +1,25 @@
+{
+  "name": "ts-node-builder",
+  "version": "1.0.0",
+  "main": "index.js",
+  "builders": "builders.json",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc",
+    "test": "ts-node node_modules/jasmine/bin/jasmine build/index_spec.ts"
+  },
+  "dependencies": {
+    "@angular-devkit/architect": "^0.803.13",
+    "@angular-devkit/core": "^8.3.13",
+    "nodemon": "^1.19.4",
+    "ts-node-dev": "^1.0.0-pre.43",
+    "tsconfig-paths": "^3.9.0",
+    "typescript": "^3.6.4"
+  },
+  "devDependencies": {
+    "@types/jasmine": "^3.4.4",
+    "@types/node": "^12.11.5",
+    "@types/nodemon": "^1.19.0",
+    "jasmine": "^3.5.0"
+  }
+}
