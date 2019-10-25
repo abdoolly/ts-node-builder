@@ -1,6 +1,6 @@
 {
   "name": "ts-node-builder",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "main": "dist/index.js",
   "builders": "builders.json",
   "license": "MIT",
@@ -18,6 +18,9 @@
     "node",
     "nx"
   ],
+  "repository": {
+    "url": "https://github.com/abdoolly/ts-node-builder"
+  },
   "dependencies": {
     "@angular-devkit/architect": "^0.803.13",
     "@angular-devkit/core": "^8.3.13",
