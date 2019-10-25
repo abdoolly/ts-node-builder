@@ -71,6 +71,10 @@ compile and run typescript and watch for change to recompile and restart the nod
 
 #### Description
 
+This builder will help you to build the project by running the tsc command and use the tsconfig
+that will provide and it optionally have the ability to run the server after the compilation, usually 
+this builder is used in deployments to build the project.
+
 #### Builder name 
 
 `ts-node-builder:build`
