@@ -17,6 +17,9 @@
         },
         "NODE_ENV": {
             "type": "string"
+        },
+        "runOnly": {
+            "type": "boolean"
         }
     }
 }

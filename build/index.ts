@@ -25,6 +25,13 @@ export interface Options extends JsonObject {
      * @default production
      */
     NODE_ENV: string;
+
+    /**
+     * @description this is flag in which the project is already built but we want to 
+     * just run
+     * @default false
+     */
+    // runOnly: boolean;
 }
 
 
@@ -65,21 +72,20 @@ function runNodeServer(context: BuilderContext, options: Options) {
     // setting the node env option by default it's production 
     let NODE_ENV = options.NODE_ENV || 'production';
 
-    // spawn a node process
-    let child = childProcess.fork(`${context.currentDirectory}/${options.mainInOutput}`, [], { env: { NODE_ENV } });
+    let child = childProcess.spawn('env',
+        [
+            `NODE_ENV=${NODE_ENV}`,
+            'node',
+            '-r',
+            'tsconfig-paths/register',
+            '-r',
+            'ts-node/register',
+            `${context.currentDirectory}/${options.mainInOutput}`
+        ],
+        { stdio: 'pipe' });
 
-    if (child.stdout) {
-        child.stdout.on('data', (data: Buffer) => {
-            console.log(Buffer.from(data).toString('utf8'))
-        });
-    }
-
-    if (child.stderr) {
-        child.stderr.on('data', (data: Buffer) => {
-            if (child.stdout)
-                child.stdout.emit('data', data)
-        });
-    }
+    child.stdout.on('data', (data: Buffer) => context.logger.info(Buffer.from(data).toString('utf8')));
+    child.stderr.on('data', (data: Buffer) => child.stdout.emit('data', data));
 
     return child.pid;
 }
@@ -87,11 +93,10 @@ function runNodeServer(context: BuilderContext, options: Options) {
 async function buildOnlyMode(context: BuilderContext, options: Options): Promise<BuilderOutput> {
     let tscResult = spawnTSC(context, options);
 
-    console.log(Buffer.from(tscResult.stdout).toString('utf8'));
+    context.logger.info(Buffer.from(tscResult.stdout).toString('utf8'));
 
     if (tscResult.status === 0) {
         context.logger.info('Typescript compiled successfully');
-        console.log('Typescript compiled successfully');
     }
 
     return { success: tscResult.status === 0 };

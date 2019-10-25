@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "baseUrl": "tsconfig",
+        "baseUrl": ".",
         "target": "es6",
         "declaration": true,
         "module": "commonjs",
@@ -19,6 +19,11 @@
         "types": [
             "node",
             "jasmine"
-        ]
+        ],
+        "paths": {
+            "@testme": [
+                "./testapp/secondTest.ts"
+            ]
+        }
     }
 }
