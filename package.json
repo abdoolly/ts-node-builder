@@ -1,6 +1,6 @@
 {
   "name": "ts-node-builder",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "main": "dist/index.js",
   "builders": "builders.json",
   "license": "MIT",
@@ -9,6 +9,15 @@
     "test-build": "ts-node node_modules/jasmine/bin/jasmine build/index_spec.ts",
     "test-dev": "ts-node node_modules/jasmine/bin/jasmine dev/index_spec.ts"
   },
+  "keywords": [
+    "nrwl",
+    "nx.dev",
+    "builder",
+    "angular-builder",
+    "typescript",
+    "node",
+    "nx"
+  ],
   "dependencies": {
     "@angular-devkit/architect": "^0.803.13",
     "@angular-devkit/core": "^8.3.13",
