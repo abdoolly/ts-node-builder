@@ -3,6 +3,7 @@
 This is an angular cli builder tool compatible and made for the use in [nx.dev](https://nx.dev/) tool.
 It helps in building and developing typescript node apps using nodemon , ts-node and helps get away from webpack since it has many problems when used with node js.
 
+[![npm version](https://badge.fury.io/js/ts-node-builder.svg)](https://badge.fury.io/js/ts-node-builder)
 
 ## Installation
 
