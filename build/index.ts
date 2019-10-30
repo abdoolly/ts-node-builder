@@ -36,7 +36,7 @@ export interface Options extends JsonObject {
 
 
 let buildFunc = createBuilder<Options>((options, context): Promise<BuilderOutput> | Observable<BuilderOutput> => {
-    let runAndBuild = options.runAndBuild === undefined || options.runAndBuild === true ? true : false;
+    let runAndBuild = options.runAndBuild === undefined || options.runAndBuild === false ? false : true;
     let buildPromise = buildOnlyMode(context, options);
     if (!runAndBuild)
         return buildPromise;
