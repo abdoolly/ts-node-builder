@@ -134,3 +134,13 @@ this builder is used in deployments to build the project.
 Please raise any issues if there is any problem and don't forget to put a star :star: :wink: if you like this package.
  
 **Made with :heart: to my organization and to the opensource world**.
+
+## Release Notes
+
+#### 1.0.0
+This was the first version it included the two commands dev and build .
+dev was using the ts-node and nodemon. build was using tsc and node commands normally.
+
+#### 2.0.0
+Changed the `dev` command and made it use tsc and nodemon instead of ts-node since sometimes ts-node make problems in typescript weird problems.
+also added new features like delayDelayBetweenRestarts flag to prevent nodemon from restarting multiple times unnecessary and NODE_ENV too so if we wanted to develop on a different env than the development but, it's development by default.
