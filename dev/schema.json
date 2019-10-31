@@ -2,12 +2,14 @@
     "$schema": "http://json-schema.org/schema",
     "type": "object",
     "required": [
-        "main",
-        "watch",
+        "mainInOutput",
         "tsconfig"
     ],
     "properties": {
-        "main": {
+        "mainInOutput": {
+            "type": "string"
+        },
+        "tsconfig": {
             "type": "string"
         },
         "watch": {
@@ -16,10 +18,13 @@
                 "type": "string"
             }
         },
-        "transpileOnly": {
-            "type": "boolean"
+        "delayBetweenRestart": {
+            "type": [
+                "number",
+                "string"
+            ]
         },
-        "tsconfig": {
+        "NODE_ENV": {
             "type": "string"
         },
         "debug": {

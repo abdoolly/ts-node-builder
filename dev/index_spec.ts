@@ -34,12 +34,13 @@ describe('Command Runner Builder', () => {
         logger.subscribe(ev => logs.push(ev.message));
 
         let options: Options = {
-            main: 'testapp/test.ts',
-            watch: ['testapp'],
-            transpileOnly: true,
+            mainInOutput: 'testapp/test.ts',
+            NODE_ENV: 'development',
             tsconfig: 'testapp/tsconfig.json',
+            watch: ['testapp'],
             debug: false,
-            debugPort: 9229
+            debugPort: 9229,
+            delayBetweenRestarts: 1.5
         };
 
         // A "run" can contain multiple outputs, and contains progress information.

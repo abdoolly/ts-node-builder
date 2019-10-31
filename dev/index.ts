@@ -1,33 +1,36 @@
 import { BuilderOutput, createBuilder, BuilderContext } from '@angular-devkit/architect';
-import * as childProcess from 'child_process';
 import { JsonObject } from '@angular-devkit/core';
 import { Observable } from 'rxjs';
+import * as concurrently from 'concurrently';
 
 export interface Options extends JsonObject {
     /**
-     * @description this is the main file to run
-     * @required
+     * @description this is the main file to run in the output path
      */
-    main: string,
+    mainInOutput: string;
 
     /**
-     * @description this is the array of folder to watch and restart if any changes happened 
-     * inside them
-     * @required
-     */
-    watch: string[],
-
-    /**
-     * @description this is a flag to control the transpileOnly mode in the ts-node 
-     * @default true
-     */
-    transpileOnly: boolean,
-
-    /**
-     * @description this is the tsconfig file path to use 
-     * @required
+     * @description tsconfig.json path
      */
     tsconfig: string;
+
+    /**
+     * @description array file paths to make nodemon watch (optional)
+     */
+    watch: string[];
+
+    /**
+     * @description if you want to set the node env
+     * @default development
+     */
+    NODE_ENV: string;
+
+    /**
+     * @description this is the delay in seconds which is passed to nodemon it's measured in seconds
+     * ex: 1 , 2 or 2000ms or 1.5 = 1500ms
+     * @default 1.5 seconds
+     */
+    delayBetweenRestarts: number;
 
     /**
      * @description this is a flag to run the process in debug mode 
@@ -36,95 +39,57 @@ export interface Options extends JsonObject {
     debug: boolean,
 
     /**
-     * @description
+     * @description this is the debug port it's 9229 by default
      */
     debugPort: number;
-
 }
 
+let buildFunc = createBuilder<Options>((options, context): Promise<BuilderOutput> | Observable<BuilderOutput> => {
+    let observable = new Observable<BuilderOutput>((observer) => {
+        try {
+            concurrentlyRun(context, options);
+            observer.next({ success: true });
 
-let buildFunc = createBuilder<Options>((options, context): Observable<BuilderOutput> => {
-    return new Observable(() => {
-        devMode(context, options);
-    })
+        } catch (err) {
+            observer.next({ success: false });
+            observer.complete();
+        }
+    });
+
+    return observable;
 });
 
 export default buildFunc
 
+function concurrentlyRun(context: BuilderContext, options: Options) {
+    // setting the node env option by default it's production 
+    let NODE_ENV = options.NODE_ENV || 'development';
+    let inspectWithPort = options.debugPort === undefined ? '--inspect' : `--inspect=${options.debugPort}`;
+    let debug = options.debug === undefined || options.debug === false ? '' : inspectWithPort;
+
+    concurrently([
+        {
+            command: `tsc --build ${context.currentDirectory}/${options.tsconfig} --pretty --watch`,
+            name: 'TSC',
+            prefixColor: 'cyan'
+        },
+        {
+            command: `NODE_ENV=${NODE_ENV} nodemon --signal SIGINT ${getWatchFilesString(options)} ${debug}  --delay ${options.delayBetweenRestarts || 1.5} -r tsconfig-paths/register -r ts-node/register ${context.currentDirectory}/${options.mainInOutput}`,
+            name: 'NODE',
+            prefixColor: 'yellow',
+        }
+    ], { killOthers: ['failure', 'success'] });
+}
+
 /**
- * @description run a typescript project in dev mode where it restarts on change of the directories
- * that are being watched
+ * @description this will receive the options and return a string of the files needs to be watched
  * @param context 
  * @param options 
  */
-function devMode(context: BuilderContext, options: Options) {
-    const child = spawnNodemon(context, options);
+let getWatchFilesString = (options: Options) => {
+    let watchArgs: string = '';
+    if (options.watch.length !== 0)
+        return `--watch ${options.watch.join(' --watch ')}`;
 
-    // piping any inputs to the process to the nodemon child process
-    // so if the user entered `rs` it's directed to nodemon so it restarts it's process
-    process.stdin.on('data', (data: any) => child.stdin.write(data));
-
-    // logging the nodemon output to the user
-    child.stdout.on('data', (data: any) => console.log(Buffer.from(data).toString('utf8')));
-
-    child.stdout.on('error', (err: Error) => {
-        console.log('Error: ', err);
-    });
-
-    child.stderr.on('data', (data: any) => child.stdout.emit('data', data));
-}
-
-function spawnNodemon(context: BuilderContext, options: Options) {
-    let watchArgs: string[] = [];
-    if (options.watch.length !== 0) {
-        options.watch = options.watch.map((value: string) => `${context.currentDirectory}/${value}`);
-        watchArgs = `--watch ${options.watch.join(' --watch ')}`.split(' ');
-    }
-
-    // get the transpile only value
-    // false => false
-    // undefined => true
-    // true => true
-    let transpileValue: string[] = [];
-    let transpileOnly = options.transpileOnly === false ? false : true;
-    if (transpileOnly)
-        transpileValue = ['-T']
-
-
-    options.debug = options.debug === false || options.debug === undefined ? false : true;
-    options.debugPort = options.debugPort === undefined ? 9229 : options.debugPort;
-
-    if (!options.debug) {
-        // nodemon --watch "file/path/to/watch" --ext ts,json --exec "ts-node -T --project tsconfig.app.json -r tsconfig-paths/register ./main/path.ts"
-        return childProcess.spawn('nodemon',
-            [
-                ...watchArgs,
-                '--ext',
-                'ts,json',
-                '--exec',
-                'ts-node',
-                ...transpileValue,
-                '--project',
-                `${context.currentDirectory}/${options.tsconfig}`,
-                '-r',
-                'tsconfig-paths/register',
-                `${context.currentDirectory}/${options.main}`
-            ], { stdio: 'pipe' });
-    }
-
-    // nodemon --watch "file/path/to/watch" --ext ts,json --exec "node --inspect=PORT -r ts-node/register -r tsconfig-paths/register ./main/path.ts"
-    return childProcess.spawn('nodemon',
-        [
-            ...watchArgs,
-            '--ext',
-            'ts,json',
-            '--exec',
-            'node',
-            `--inspect=${options.debugPort}`,
-            '-r',
-            'ts-node/register',
-            '-r',
-            'tsconfig-paths/register',
-            `${context.currentDirectory}/${options.main}`
-        ], { stdio: 'pipe' });
+    return watchArgs;
 }
