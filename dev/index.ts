@@ -2,6 +2,7 @@ import { BuilderOutput, createBuilder, BuilderContext } from '@angular-devkit/ar
 import { JsonObject } from '@angular-devkit/core';
 import { Observable } from 'rxjs';
 import * as concurrently from 'concurrently';
+import { copyArray } from '../helpers/copy';
 
 export interface Options extends JsonObject {
     /**
@@ -42,12 +43,22 @@ export interface Options extends JsonObject {
      * @description this is the debug port it's 9229 by default
      */
     debugPort: number;
+
+    /**
+     * @description optional copy command usually will be used for assests , and stuff 
+     * that should be copied to the build destination
+     */
+    copy: { from: string, to: string }[]
 }
 
 let buildFunc = createBuilder<Options>((options, context): Promise<BuilderOutput> | Observable<BuilderOutput> => {
     let observable = new Observable<BuilderOutput>((observer) => {
         try {
             concurrentlyRun(context, options);
+
+            // copying things that need copying
+            copyArray(options.copy);
+
             observer.next({ success: true });
 
         } catch (err) {
@@ -67,7 +78,7 @@ function concurrentlyRun(context: BuilderContext, options: Options) {
     let inspectWithPort = options.debugPort === undefined ? '--inspect' : `--inspect=${options.debugPort}`;
     let debug = options.debug === undefined || options.debug === false ? '' : inspectWithPort;
 
-    concurrently([
+    return concurrently([
         {
             command: `tsc --build ${context.currentDirectory}/${options.tsconfig} --pretty --watch`,
             name: 'TSC',

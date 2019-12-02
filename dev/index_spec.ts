@@ -40,7 +40,10 @@ describe('Command Runner Builder', () => {
             watch: ['testapp'],
             debug: false,
             debugPort: 9229,
-            delayBetweenRestarts: 1.5
+            delayBetweenRestarts: 1.5,
+            copy: [
+                { from: './dev/testapp/', to: './testos/' }
+            ]
         };
 
         // A "run" can contain multiple outputs, and contains progress information.

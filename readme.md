@@ -96,6 +96,7 @@ compile and run typescript and watch for change to recompile and restart the nod
 | debugPort | no | number | 9229 |this is the debug port if specified it's used also it's value was `0` then it will auto assign a free port each time it runs|
  |NODE_ENV| no | string | development | node environment variable you can put it with any value you want |
  |delayBetweenRestarts|no|number or string | 1.5 seconds | this is the delay in seconds which is passed to nodemon it's measured in seconds or milliseconds when specified check [nodemon docs here]([https://github.com/remy/nodemon#delaying-restarting](https://github.com/remy/nodemon#delaying-restarting))
+ |copy|no|array|N/A|this option is used to copy commands it's an array of objects ``` [ {"from":"./from/path", "to": "./to/path" } ] ``` it can copy files or directories|
 
 ## ts-node-builder:build
 
@@ -126,7 +127,7 @@ this builder is used in deployments to build the project.
 |tsconfig|yes|string|N/A|tsconfig.json path to be used in the build process|
 |runAndBuild|no|boolean|false|this is an option that will run the node server after building if false it will only build|
 |NODE_ENV|no|string|production|if you want to set the node env it's production by default since usually it's assumed that this command will be used for the build process|
-
+|copy|no|array|N/A|this option is used to copy commands it's an array of objects ``` [ {"from":"./from/path", "to": "./to/path" } ] ``` it can copy files or directories|
   
 **NICE NOTE** usually the users of this builder are [nx.dev](https://nx.dev/) users so , I have also made a nx helper cli to help run for example all the microservices with just one command based on a json file check it out [here](https://www.npmjs.com/package/nx-helper-cli)
   
@@ -144,3 +145,16 @@ dev was using the ts-node and nodemon. build was using tsc and node commands nor
 #### 2.0.0
 Changed the `dev` command and made it use tsc and nodemon instead of ts-node since sometimes ts-node make problems in typescript weird problems.
 also added new features like delayDelayBetweenRestarts flag to prevent nodemon from restarting multiple times unnecessary and NODE_ENV too so if we wanted to develop on a different env than the development but, it's development by default.
+
+#### 2.1.0
+
+new feature adding a copy option to take an array of object from and to for  things like assets and those stuff.
+it looks like that 
+```
+[
+	{
+		"from":"./from/path",
+		"to": "./to/path"
+	}
+]
+```

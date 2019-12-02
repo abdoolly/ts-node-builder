@@ -37,7 +37,10 @@ describe('Command Runner Builder', () => {
             mainInOutput: 'testapp/dist/test.js',
             tsconfig: 'testapp/tsconfig.json',
             runAndBuild: false,
-            NODE_ENV: 'production'
+            NODE_ENV: 'production',
+            copy: [
+                { from: './build/testapp/', to: './testos/' }
+            ]
         };
 
         // A "run" can contain multiple outputs, and contains progress information.
@@ -70,7 +73,10 @@ describe('Command Runner Builder', () => {
             mainInOutput: 'testapp/dist/test.js',
             tsconfig: 'testapp/tsconfig.json',
             runAndBuild: true,
-            NODE_ENV: 'production'
+            NODE_ENV: 'production',
+            copy: [
+                { from: './build/testapp/', to: './testos/' }
+            ]
         };
 
         // A "run" can contain multiple outputs, and contains progress information.

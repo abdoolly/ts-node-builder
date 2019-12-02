@@ -2,6 +2,7 @@ import { BuilderOutput, createBuilder, BuilderContext } from '@angular-devkit/ar
 import * as childProcess from 'child_process';
 import { JsonObject } from '@angular-devkit/core';
 import { Observable } from 'rxjs';
+import { copyArray } from '../helpers/copy';
 
 export interface Options extends JsonObject {
     /**
@@ -32,6 +33,12 @@ export interface Options extends JsonObject {
      * @default false
      */
     // runOnly: boolean;
+
+    /**
+     * @description optional copy command usually will be used for assests , and stuff 
+     * that should be copied to the build destination
+     */
+    copy: { from: string, to: string }[]
 }
 
 
@@ -43,6 +50,9 @@ let buildFunc = createBuilder<Options>((options, context): Promise<BuilderOutput
 
     let observable = new Observable<BuilderOutput>((observer) => {
         buildPromise.then(({ success }) => {
+
+            // copying things that need copying
+            copyArray(options.copy);
 
             // only run the node server if the build was successfull
             if (success) {

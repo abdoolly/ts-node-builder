@@ -20,6 +20,24 @@
         },
         "runOnly": {
             "type": "boolean"
+        },
+        "copy": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": [
+                    "from",
+                    "to"
+                ],
+                "properties": {
+                    "from": {
+                        "type": "string"
+                    },
+                    "to": {
+                        "type": "string"
+                    }
+                }
+            }
         }
     }
 }
