@@ -1,7 +1,8 @@
-import { BuilderOutput, createBuilder, BuilderContext } from '@angular-devkit/architect';
+import { BuilderContext, BuilderOutput, createBuilder } from '@angular-devkit/architect';
 import { JsonObject } from '@angular-devkit/core';
+import { ChildProcessWithoutNullStreams } from 'child_process';
 import { Observable } from 'rxjs';
-import * as concurrently from 'concurrently';
+import * as shell from 'shelljs';
 import { copyArray } from '../helpers/copy';
 
 export interface Options extends JsonObject {
@@ -54,13 +55,13 @@ export interface Options extends JsonObject {
 let buildFunc = createBuilder<Options>((options, context): Promise<BuilderOutput> | Observable<BuilderOutput> => {
     let observable = new Observable<BuilderOutput>((observer) => {
         try {
-            concurrentlyRun(context, options);
+            concurrentlyRun(context, options).then(() => {
 
-            // copying things that need copying
-            copyArray(options.copy);
+                // copying things that need copying
+                copyArray(options.copy);
 
-            observer.next({ success: true });
-
+                observer.next({ success: true });
+            });
         } catch (err) {
             observer.next({ success: false });
             observer.complete();
@@ -72,24 +73,24 @@ let buildFunc = createBuilder<Options>((options, context): Promise<BuilderOutput
 
 export default buildFunc
 
-function concurrentlyRun(context: BuilderContext, options: Options) {
+async function concurrentlyRun(context: BuilderContext, options: Options) {
     // setting the node env option by default it's production 
     let NODE_ENV = options.NODE_ENV || 'development';
     let inspectWithPort = options.debugPort === undefined ? '--inspect' : `--inspect=${options.debugPort}`;
     let debug = options.debug === undefined || options.debug === false ? '' : inspectWithPort;
 
-    return concurrently([
-        {
-            command: `tsc --build ${context.currentDirectory}/${options.tsconfig} --pretty --watch`,
-            name: 'TSC',
-            prefixColor: 'cyan'
-        },
-        {
-            command: `NODE_ENV=${NODE_ENV} nodemon --signal SIGINT ${getWatchFilesString(options)} ${debug}  --delay ${options.delayBetweenRestarts || 1.5} -r tsconfig-paths/register -r ts-node/register ${context.currentDirectory}/${options.mainInOutput}`,
-            name: 'NODE',
-            prefixColor: 'yellow',
+    let tscBuild = shell.exec(`tsc --build ${context.currentDirectory}/${options.tsconfig} --pretty --watch`, { async: true }) as ChildProcessWithoutNullStreams;
+
+    tscBuild.stdout.on('data', (chunk: string) => {
+        // string that the typescript compilation has succeeded 
+        let result = chunk.indexOf(`Found 0 errors. Watching for file changes.`);
+        if (result !== -1) {
+            // compilation succeded time to run node process
+            shell.exec(`NODE_ENV=${NODE_ENV} nodemon --signal SIGINT ${getWatchFilesString(options)} ${debug}  --delay ${options.delayBetweenRestarts || 1.5} -r tsconfig-paths/register -r ts-node/register ${context.currentDirectory}/${options.mainInOutput}`, {
+                async: true
+            });
         }
-    ], { killOthers: ['failure', 'success'] });
+    });
 }
 
 /**

@@ -25,21 +25,22 @@ export function copyArray(arr: Copy[]) {
 export function copy(fromPath: string, toPath: string) {
 
     // validate file paths
-    if (!isValidatePath(fromPath))
-        return;
+    if (!isValidPath(fromPath))
+        return console.error(`Path "${fromPath}" does not exist`);
 
-    shell.cp('-r', fromPath, toPath);
+    if (!isValidPath(toPath))
+        shell.mkdir('-p', toPath);
+
+    shell.cp('-ru', fromPath, toPath);
 }
 
 /**
  * @description function that validate that file or folder actually exists
  * @param path 
  */
-function isValidatePath(path: string) {
-    if (!existsSync(path)) {
-        console.error(`Path "${path}" does not exist`);
+function isValidPath(path: string, ) {
+    if (!existsSync(path))
         return false;
-    }
 
     return true;
 }

@@ -45,14 +45,18 @@ export interface Options extends JsonObject {
 let buildFunc = createBuilder<Options>((options, context): Promise<BuilderOutput> | Observable<BuilderOutput> => {
     let runAndBuild = options.runAndBuild === undefined || options.runAndBuild === false ? false : true;
     let buildPromise = buildOnlyMode(context, options);
-    if (!runAndBuild)
+
+    if (!runAndBuild) {
+        // copying things that need copying
+        buildPromise.then(() => copyArray(options.copy));
         return buildPromise;
+    }
 
     let observable = new Observable<BuilderOutput>((observer) => {
         buildPromise.then(({ success }) => {
 
             // copying things that need copying
-            copyArray(options.copy);
+            copyArray(options.copy)
 
             // only run the node server if the build was successfull
             if (success) {
