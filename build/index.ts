@@ -1,6 +1,7 @@
-import { BuilderOutput, createBuilder, BuilderContext } from '@angular-devkit/architect';
-import * as childProcess from 'child_process';
+import { BuilderContext, BuilderOutput, createBuilder } from '@angular-devkit/architect';
 import { JsonObject } from '@angular-devkit/core';
+import * as childProcess from 'child_process';
+import * as rimraf from 'rimraf';
 import { Observable } from 'rxjs';
 import { copyArray } from '../helpers/copy';
 
@@ -39,10 +40,18 @@ export interface Options extends JsonObject {
      * that should be copied to the build destination
      */
     copy: { from: string, to: string }[]
+
+    /**
+     * @description optional a list of directories to delete before building
+     */
+    clean: string[];
 }
 
 
 let buildFunc = createBuilder<Options>((options, context): Promise<BuilderOutput> | Observable<BuilderOutput> => {
+    if (options.clean) {
+        options.clean.forEach(dir => rimraf.sync(`${context.currentDirectory}/${dir}`));
+    }
     let runAndBuild = options.runAndBuild === undefined || options.runAndBuild === false ? false : true;
     let buildPromise = buildOnlyMode(context, options);
 

@@ -38,6 +38,12 @@
                     }
                 }
             }
+        },
+        "clean": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
         }
     }
 }
