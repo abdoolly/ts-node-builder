@@ -128,6 +128,7 @@ this builder is used in deployments to build the project.
 |runAndBuild|no|boolean|false|this is an option that will run the node server after building if false it will only build|
 |NODE_ENV|no|string|production|if you want to set the node env it's production by default since usually it's assumed that this command will be used for the build process|
 |copy|no|array|N/A|this option is used to copy commands it's an array of objects ``` [ {"from":"./from/path", "to": "./to/path" } ] ``` it can copy files or directories|
+|clean|no|string []|N/A| this options allow cleaning before build by giving it an array of paths to delete before the build happen `"clean":["folder/to/delete"]` |
   
 **NICE NOTE** usually the users of this builder are [nx.dev](https://nx.dev/) users so , I have also made a nx helper cli to help run for example all the microservices with just one command based on a json file check it out [here](https://www.npmjs.com/package/nx-helper-cli)
   
@@ -158,3 +159,15 @@ it looks like that
 	}
 ]
 ```
+
+#### 2.2.0
+
+new feature thanks to [gibsonjoshua55](https://github.com/gibsonjoshua55) who implemented it which is to be able to clean up or delete folders before the build and it's used like that 
+
+```
+{
+    "clean": ["folder/to/delete","other/folder/to_delete"]
+}
+```
+
+

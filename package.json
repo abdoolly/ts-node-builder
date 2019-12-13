@@ -1,6 +1,6 @@
 {
   "name": "ts-node-builder",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "main": "dist/index.js",
   "builders": "builders.json",
   "license": "MIT",
