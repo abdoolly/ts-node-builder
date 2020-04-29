@@ -25,6 +25,7 @@
     "@angular-devkit/architect": "^0.803.13",
     "@angular-devkit/core": "^8.3.13",
     "concurrently": "^5.0.0",
+    "cpx": "^1.5.0",
     "nodemon": "^1.19.4",
     "rimraf": "^3.0.0",
     "shelljs": "^0.8.3",
@@ -34,6 +35,7 @@
   },
   "devDependencies": {
     "@types/concurrently": "^4.1.0",
+    "@types/cpx": "^1.5.1",
     "@types/jasmine": "^3.4.4",
     "@types/node": "^12.11.5",
     "@types/nodemon": "^1.19.0",
